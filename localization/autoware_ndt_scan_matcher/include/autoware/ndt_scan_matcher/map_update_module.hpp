@@ -20,6 +20,7 @@
 #include "ndt_omp/multigrid_ndt_omp.h"
 #include "particle.hpp"
 
+#include <autoware/agnocast_wrapper/autoware_agnocast_wrapper.hpp>
 #include <autoware/localization_util/util_func.hpp>
 #include <autoware_utils_diagnostics/diagnostics_interface.hpp>
 #include <autoware_utils_pcl/transforms.hpp>
@@ -91,8 +92,7 @@ private:
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr loaded_pcd_pub_;
 
-  rclcpp::Client<autoware_map_msgs::srv::GetDifferentialPointCloudMap>::SharedPtr
-    pcd_loader_client_;
+  AUTOWARE_CLIENT_PTR(autoware_map_msgs::srv::GetDifferentialPointCloudMap) pcd_loader_client_;
 
   // To prevent deadlocks, acquire locks in the following order:
   // 1. builder_state_ -> ndt_ptr_

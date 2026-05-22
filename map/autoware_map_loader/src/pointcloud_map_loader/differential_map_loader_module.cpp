@@ -25,16 +25,18 @@ DifferentialMapLoaderModule::DifferentialMapLoaderModule(
   rclcpp::Node * node, std::map<std::string, PCDFileMetadata> pcd_file_metadata_dict)
 : logger_(node->get_logger()), all_pcd_file_metadata_dict_(std::move(pcd_file_metadata_dict))
 {
-  get_differential_pcd_maps_service_ = node->create_service<GetDifferentialPointCloudMap>(
-    "service/get_differential_pcd_map",
-    std::bind(
-      &DifferentialMapLoaderModule::on_service_get_differential_point_cloud_map, this,
-      std::placeholders::_1, std::placeholders::_2));
+  get_differential_pcd_maps_service_ = AUTOWARE_CREATE_SERVICE2_ON_NODE(
+    GetDifferentialPointCloudMap, node, "service/get_differential_pcd_map",
+    [this](
+      const AUTOWARE_SERVER_REQUEST_PTR(GetDifferentialPointCloudMap) & request,
+      const AUTOWARE_SERVER_RESPONSE_PTR(GetDifferentialPointCloudMap) & response) {
+      this->on_service_get_differential_point_cloud_map(request, response);
+    });
 }
 
 void DifferentialMapLoaderModule::differential_area_load(
   const autoware_map_msgs::msg::AreaInfo & area_info, const std::vector<std::string> & cached_ids,
-  const GetDifferentialPointCloudMap::Response::SharedPtr & response) const
+  const AUTOWARE_SERVER_RESPONSE_PTR(GetDifferentialPointCloudMap) & response) const
 {
   // iterate over all the available pcd map grids
   std::vector<bool> should_remove(static_cast<int>(cached_ids.size()), true);
@@ -66,8 +68,8 @@ void DifferentialMapLoaderModule::differential_area_load(
 }
 
 bool DifferentialMapLoaderModule::on_service_get_differential_point_cloud_map(
-  GetDifferentialPointCloudMap::Request::SharedPtr req,
-  GetDifferentialPointCloudMap::Response::SharedPtr res) const
+  const AUTOWARE_SERVER_REQUEST_PTR(GetDifferentialPointCloudMap) & req,
+  const AUTOWARE_SERVER_RESPONSE_PTR(GetDifferentialPointCloudMap) & res) const
 {
   auto area = req->area;
   std::vector<std::string> cached_ids = req->cached_ids;

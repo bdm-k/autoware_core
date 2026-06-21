@@ -22,7 +22,7 @@ target_include_directories(pointcloud_map_loader_node
   ${PCL_INCLUDE_DIRS}
 )
 
-rclcpp_components_register_node(pointcloud_map_loader_node
+autoware_agnocast_wrapper_register_node(pointcloud_map_loader_node
   PLUGIN "autoware::map_loader::PointCloudMapLoaderNode"
   EXECUTABLE autoware_pointcloud_map_loader
 )

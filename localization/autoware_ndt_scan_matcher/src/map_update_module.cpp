@@ -28,8 +28,8 @@ MapUpdateModule::MapUpdateModule(
   loaded_pcd_pub_ = node->create_publisher<sensor_msgs::msg::PointCloud2>(
     "debug/loaded_pointcloud_map", rclcpp::QoS{1}.transient_local());
 
-  pcd_loader_client_ =
-    node->create_client<autoware_map_msgs::srv::GetDifferentialPointCloudMap>("pcd_loader_service");
+  pcd_loader_client_ = AUTOWARE_CREATE_CLIENT1_ON_NODE(
+    autoware_map_msgs::srv::GetDifferentialPointCloudMap, node, "pcd_loader_service");
 
   auto copied = builder_state_.with([&](auto & builder_state) {
     // Initially, a direct map update on ndt_ptr_ is needed.
@@ -240,7 +240,7 @@ bool MapUpdateModule::update_ndt(
 {
   diagnostics_ptr->add_key_value("maps_size_before", ndt.getCurrentMapIDs().size());
 
-  auto request = std::make_shared<autoware_map_msgs::srv::GetDifferentialPointCloudMap::Request>();
+  auto request = ALLOCATE_OUTPUT_SERVICE_REQUEST(pcd_loader_client_);
 
   request->area.center_x = static_cast<float>(position.x);
   request->area.center_y = static_cast<float>(position.y);
@@ -259,8 +259,8 @@ bool MapUpdateModule::update_ndt(
 
   // send a request to map_loader
   auto result{pcd_loader_client_->async_send_request(
-    request,
-    [](rclcpp::Client<autoware_map_msgs::srv::GetDifferentialPointCloudMap>::SharedFuture) {})};
+    std::move(request),
+    [](AUTOWARE_CLIENT_SHARED_FUTURE(autoware_map_msgs::srv::GetDifferentialPointCloudMap)) {})};
 
   std::future_status status = result.wait_for(std::chrono::seconds(0));
   while (status != std::future_status::ready) {
